@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router";
+import { getProfile } from "../features/auth/authAction";
 
 // Avtar with darpdown menu
-const AvatarMenue = () => {
+const AvatarMenue = ({ avatar }) => {
   const [state, setState] = useState(false);
   const profileRef = useRef();
 
@@ -29,8 +30,9 @@ const AvatarMenue = () => {
           onClick={() => setState(!state)}
         >
           <img
-            src="https://api.uifaces.co/our-content/donated/xZ4wg2Xj.jpg"
+            src={avatar}
             className="w-full h-full rounded-full"
+            alt="Profile"
           />
         </button>
       </div>
@@ -58,13 +60,22 @@ const AvatarMenue = () => {
 };
 
 export default function AppNavbar() {
+  const dispatch = useDispatch();
   const count = useSelector((state) => state.counter.value);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const profile = useSelector((state) => state.auth.profile);
+  const accessToken = useSelector((state) => state.auth.accessToken);
+
   const [state, setState] = useState(false);
+
+  useEffect(() => {
+    console.log("app navbar use effect");
+    dispatch(getProfile(accessToken));
+  }, [isAuthenticated]);
 
   // Replace javascript:void(0) paths with your paths
   const navigation = [
     { title: "People", path: "/people" },
-    { title: "Login", path: "/signin" },
     { title: "Register", path: "/register" },
   ];
 
@@ -174,7 +185,18 @@ export default function AppNavbar() {
                 </li>
               );
             })}
-            <AvatarMenue />
+            {isAuthenticated && isAuthenticated ? (
+              <AvatarMenue avatar={profile && profile.avatar} />
+            ) : (
+              <li>
+                <Link
+                  to="/signin"
+                  className="block text-gray-700 hover:text-gray-900"
+                >
+                  Log in
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       </div>
